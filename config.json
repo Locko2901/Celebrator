@@ -1,0 +1,7 @@
+{
+  "token": "bot-token",
+  "clientId": "application-id",
+  "userId": "your-user-id",
+  "timezone": "your-timezone"
+}
+

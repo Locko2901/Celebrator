@@ -29,14 +29,19 @@ Celebrator is a Discord bot that helps you keep track of birthdays. It sends dir
     npm install -g pm2
     ```
 
-4. Create the necessary directories:
+4. Install pm2-logrotate:
+    ```sh
+    pm2 install pm2-logrotate
+    ```
+
+5. Create the necessary directories:
     ```sh
     mkdir -p logs data
     ```
 
-5. Fill out the `config.json`.
+6. Fill out the `config.json`.
 
-6. Run the project using PM2 and `ecosystem.config.js`:
+7. Run the project using PM2 and `ecosystem.config.js`:
     ```sh
     pm2 start ecosystem.config.js
     ```

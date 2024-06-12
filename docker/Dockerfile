@@ -6,8 +6,10 @@ COPY package*.json ./
 
 RUN npm install && npm install -g pm2
 
+RUN pm2 install pm2-logrotate
+
 COPY . .
 
 RUN node src/deploy-commands.js
 
-CMD /bin/bash -c "node src/deploy-commands.js && pm2-runtime start ecosystem.config.js"
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]

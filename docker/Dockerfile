@@ -1,14 +1,12 @@
-FROM node:20
+FROM node:20alpine
 
 WORKDIR /home/Celebrator
 
-COPY package*.json ./
+COPY . .
 
 RUN npm install && npm install -g pm2
 
 RUN pm2 install pm2-logrotate
-
-COPY . .
 
 RUN node src/deploy-commands.js
 

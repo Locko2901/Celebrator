@@ -1,3 +1,6 @@
-node_modules
-Dockerfile
-logs/
+*
+! package.json
+! package-lock.json
+! src/ .
+! config.json
+! ecosystem.config.js

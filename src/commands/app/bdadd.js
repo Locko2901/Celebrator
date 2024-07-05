@@ -54,7 +54,7 @@ module.exports = {
     // Write the updated birthdays back to the JSON file
     try {
       fs.writeFileSync(birthdaysFilePath, JSON.stringify(birthdays, null, 2));
-      await interaction.reply('Birthday added successfully!');
+      await interaction.reply(`${name}'s birthday was added successfully!`);
     } catch (error) {
       console.error('Error writing to birthdays.json:', error);
       await interaction.reply('An error occurred while adding the birthday.');

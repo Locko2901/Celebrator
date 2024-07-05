@@ -1,4 +1,4 @@
-FROM node:20alpine
+FROM node:20-alpine
 
 WORKDIR /home/Celebrator
 

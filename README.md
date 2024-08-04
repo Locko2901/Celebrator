@@ -5,6 +5,10 @@ Celebrator is a Discord bot that helps you keep track of birthdays. It sends dir
 - `/bdremove`: Remove a birthday
 - `/bdlist`: List all birthdays
 
+## Preview 
+
+![Project Screenshot](https://github.com/Locko2901/Celebrator/blob/main/images/1.jpg)
+
 ## Manual Installation
 
 ### Prerequisites

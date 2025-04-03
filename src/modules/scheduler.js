@@ -5,7 +5,6 @@ function scheduleAtMidnight(timezone, taskFunction, client) {
     const nextMidnight = now.plus({ days: 1 }).startOf('day');
     const waitDuration = nextMidnight.diff(now).toObject().milliseconds;
 
-    // Convert waitDuration from milliseconds to more readable format (hours, minutes, seconds)
     let waitTimeInSeconds = waitDuration / 1000;
     let hours = Math.floor(waitTimeInSeconds / 3600);
     waitTimeInSeconds %= 3600;

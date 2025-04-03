@@ -18,23 +18,17 @@ module.exports = {
         const birthdaysFilePath = path.join(__dirname, '..', '..', 'data', 'birthdays.json');
 
         try {
-            // Read birthdays
             let birthdays = readBirthdays(birthdaysFilePath);
 
             if (birthdays.length > 0) {
-                // Sort birthdays
                 birthdays = sortBirthdays(birthdays);
 
-                // Determine today's birthdays and the next upcoming birthday
                 const { todayBirthdays, nextUpcomingBirthday } = findRelevantBirthdays(birthdays);
 
-                // Format the birthday list
                 const birthdayList = formatBirthdayList(birthdays, todayBirthdays, nextUpcomingBirthday);
 
-                // Acknowledge interaction
                 await interaction.reply({ content: "**🎉 Birthdays 🎉**" });
 
-                // Send the actual list in chunks
                 await sendInChunks(interaction, birthdayList);
             } else {
                 await interaction.reply('No birthdays found.');
@@ -46,7 +40,6 @@ module.exports = {
     }
 };
 
-// Function to read birthdays from a file
 function readBirthdays(filePath) {
     if (fs.existsSync(filePath)) {
         try {
@@ -59,14 +52,12 @@ function readBirthdays(filePath) {
     }
 }
 
-// Function to sort birthdays by month and day
 function sortBirthdays(birthdays) {
     return birthdays.sort((a, b) => {
         return a.month === b.month ? a.day - b.day : a.month - b.month;
     });
 }
 
-// Function to find today's and the next upcoming birthday
 function findRelevantBirthdays(birthdays) {
     const now = new Date();
     const currentMonth = now.getMonth() + 1; // JS months are 0-indexed so +1 for human-readable month
@@ -84,7 +75,6 @@ function findRelevantBirthdays(birthdays) {
         }
     });
 
-    // If no upcoming birthday found, check from the start of the year
     if (!nextUpcomingBirthday) {
         nextUpcomingBirthday = birthdays.find(birthday => 
             birthday.month > currentMonth || 
@@ -95,7 +85,6 @@ function findRelevantBirthdays(birthdays) {
     return { todayBirthdays, nextUpcomingBirthday };
 }
 
-// Function to format the birthday list
 function formatBirthdayList(birthdays, todayBirthdays, nextUpcomingBirthday) {
     return birthdays.map(birthday => {
         const day = String(birthday.day).padStart(2, '0');
@@ -122,13 +111,13 @@ async function sendInChunks(interaction, list) {
         
         if (message.length + formattedItem.length > MAX_MESSAGE_LENGTH) {
             await interaction.followUp(message);
-            message = formattedItem; // Reset the message with the current item
+            message = formattedItem;
         } else {
             message += formattedItem;
         }
     }
     
     if (message.length > 0) {
-        await interaction.followUp(message); // Send any remaining message content
+        await interaction.followUp(message);
     }
 }

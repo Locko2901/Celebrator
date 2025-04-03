@@ -40,7 +40,7 @@ Celebrator is a Discord bot that helps you keep track of birthdays. It sends dir
 
 5. Create the necessary directories:
     ```sh
-    mkdir -p logs data
+    mkdir /logs
     ```
 
 6. Fill out the `config.json`.
@@ -67,26 +67,9 @@ Celebrator is a Discord bot that helps you keep track of birthdays. It sends dir
 
 3. Build and run using Docker:
     ```sh
-    docker build -t celebrator -f docker/Dockerfile .
-    docker run -d \
-      --name celebrator \
-      -v $(pwd)/config.json:/home/celebrator/config.json \
-      -v $(pwd)/data:/home/celebrator/src/data \
-      -v $(pwd)/logs:/home/celebrator/logs \
-      celebrator
+    ./start_celebrator.sh
     ```
     This command may take some time.
-
-### Explanation
-The Docker setup links several directories from your host machine into the Docker container:
-
-- **config.json**: This file contains the necessary configuration for the bot. By linking it, you can update the configuration without rebuilding the Docker image.
-
-- **data**: This directory stores the birthday data. By linking it, birthdays and other data are preserved even if the Docker container is restarted.
-
-- **logs**: This directory stores log files. By linking it, log files remain accessible and are not lost when the container restarts.
-
-This setup ensures that changes to `config.json`, data in the `data` directory, and logs in the `logs` directory are persistent across container restarts. You can manage and update these files directly on your host machine without losing data upon restarting the Docker container.
 
 ---
 
@@ -120,13 +103,14 @@ To interact with your application, a bot account on Discord is necessary. Here a
 1. Navigate to the [Discord Developer Portal](https://discord.com/developers/applications) and log in with your Discord credentials.
 2. Select the "New Application" button, name your application, and click on "Create".
 3. Copy the "Application ID" from the "General Information" tab and save it.
-4. In the "Bot" tab:
-   - Customize your bot's username and profile image.
-   - Disable *"Public Bot"* and leave *"Requires OAuth2 Code Grant"* deactivated.
-   - Enable *"Presence Intent"*, *"Server Members Intent"*, and *"Message Content Intent"*.
-5. Under "TOKEN", click "Copy" to save your bot's token. This token and the application ID will be needed for the `config.json` file configuration.
+4. Navigate to the "Installation" tab and set the install link to *"none"*.
+5. In the "Bot" tab:
+   - (Optional) Customize your bot's username and profile image.
+   - Disable *"Public Bot"* (otherwise anyone can invite it to their server) and leave *"Requires OAuth2 Code Grant"* deactivated.
+   - Enable *"Server Members Intent"*.
+6. Under "TOKEN", click "Copy" to save your bot's token. This token and the application ID will be needed for the `config.json` file configuration.
 
-**Security Tip:** Keep your bot's token secure to prevent unauthorized access.
+**Important:** Your bot's token is called a secret for a reason. Keep it that way!
 
 ### Inviting Your Bot to a Server
 
@@ -135,6 +119,6 @@ To make your bot operational:
 1. Access your bot's application page in the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Navigate to the "OAuth2" tab and use the "URL Generator":
    - In “Scopes”, select “bot” and "applications.commands".
-   - Under “Bot Permissions”, choose the necessary permissions, or select "Administrator".
+   - Under “Bot Permissions” you can leave everything disabled.
 3. Copy the "Generated URL", paste it into a web browser, select a server, and confirm to add your bot.
 4. From there you can send your bot a dm and start configuring Birthdays with the `/bdadd`, `/bdremove` and `/bdlist` commands.

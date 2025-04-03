@@ -122,3 +122,7 @@ To make your bot operational:
    - Under “Bot Permissions” you can leave everything disabled.
 3. Copy the "Generated URL", paste it into a web browser, select a server, and confirm to add your bot.
 4. From there you can send your bot a dm and start configuring Birthdays with the `/bdadd`, `/bdremove` and `/bdlist` commands.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Locko2901/YouTubeMusicTools/blob/main/LICENSE) file for details.

@@ -11,10 +11,10 @@ module.exports = {
         env: {
           NODE_ENV: 'production',
         },
-        output: './logs/Celebrator_out.log',
-        error: './logs/Celebrator_error.log',
+        output: '/logs/Celebrator_out.log',
+        error: '/logs/Celebrator_error.log',
         combine_logs: true,
-        log_file: './logs/Celebrator_combined.log',
+        log_file: '/logs/Celebrator_combined.log',
       }
     ],
     modules: {

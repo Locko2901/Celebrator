@@ -125,4 +125,4 @@ To make your bot operational:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/Locko2901/YouTubeMusicTools/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Locko2901/Celebrator/blob/main/LICENSE) file for details.

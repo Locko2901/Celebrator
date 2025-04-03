@@ -50,33 +50,46 @@ client.on('ready', async () => {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
+    if (interaction.isAutocomplete()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
+        
+        if (typeof command.autocomplete === 'function') {
+            try {
+                await command.autocomplete(interaction);
+            } catch (error) {
+                console.error('Error in autocomplete interaction:', error);
+            }
+        }
+        return;
+    }
+    
     if (!interaction.isChatInputCommand()) return;
-
+    
     const command = client.commands.get(interaction.commandName);
-
     if (!command) return;
-
+    
     try {
         await command.execute(interaction);
     } catch (error) {
         console.error(error);
         const response = interaction.replied || interaction.deferred ? interaction.followUp : interaction.reply;
-        response({ content: 'There was an error while executing this command!', ephemeral: true });
+        response({ 
+            content: 'There was an error while executing this command!', 
+            ephemeral: true 
+        });
     }
-});
+});  
 
 client.login(token);
 
 async function remindBirthdays(client) {
     try {
-        const { timezone, userId } = loadConfig();
-        console.log(`Config loaded: timezone=${timezone}, userId=${userId}`);
+        const { timezone, userId } = await loadConfig();
         
         const targetUser = await client.users.fetch(userId);
-        console.log(`Target user fetched: ${targetUser.tag}`);
         
         const now = DateTime.now().setZone(timezone);
-        console.log(`Fetched date: ${now.toString()}`);
 
         let birthdays;
         try {
@@ -85,13 +98,11 @@ async function remindBirthdays(client) {
             console.error('Failed to read or parse birthdays.json', error);
             return;
         }
-        console.log(`Birthdays loaded: ${birthdays.length} entries`);
 
         // Today's birthdays
         const todayBirthdays = birthdays.filter(birthday =>
             birthday.day === now.day && birthday.month === now.month
         );
-        console.log(`Today's birthday/s: ${todayBirthdays.length}`);
         await sendReminders(targetUser, todayBirthdays, "Today", "🎉 Today is ${name}'s birthday! 🎉");
 
         // Birthdays in one day
@@ -99,7 +110,6 @@ async function remindBirthdays(client) {
         const tomorrowBirthdays = birthdays.filter(birthday =>
             birthday.day === tomorrow.day && birthday.month === tomorrow.month
         );
-        console.log(`Tomorrow's birthday/s reminder: ${tomorrowBirthdays.length}`);
         await sendReminders(targetUser, tomorrowBirthdays, "in 1 day", "🎉 Hey: ${name}'s birthday is tomorrow! 🎉");
 
         // Birthdays in one week
@@ -107,7 +117,6 @@ async function remindBirthdays(client) {
         const nextWeekBirthdays = birthdays.filter(birthday =>
             birthday.day === nextWeek.day && birthday.month === nextWeek.month
         );
-        console.log(`Next week's birthday/s reminder: ${nextWeekBirthdays.length}`);
         await sendReminders(targetUser, nextWeekBirthdays, "in 1 week", "🎉 Heads up: ${name}'s birthday is in a week! 🎉");
 
     } catch (error) {

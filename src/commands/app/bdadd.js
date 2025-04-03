@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+
 const birthdaysFilePath = path.join(__dirname, '..', '..', 'data', 'birthdays.json');
 
 const addBirthdayCommand = new SlashCommandBuilder()
@@ -21,18 +22,14 @@ module.exports = {
     const name = interaction.options.getString('name');
     const date = interaction.options.getString('date');
 
-    // Split the date into day and month
     const [day, month] = date.split('/');
 
-    // Validate the date format
     if (!day || !month) {
       return await interaction.reply('Invalid date format. Please use DD/MM format.');
     }
 
-    // Construct the birthday object
     const birthday = { name, day: parseInt(day), month: parseInt(month) };
 
-    // Read the existing birthdays from the JSON file
     let birthdays = [];
 
     try {
@@ -42,16 +39,14 @@ module.exports = {
           birthdays = JSON.parse(data);
         }
       } else {
-        fs.writeFileSync(birthdaysFilePath, '[]', 'utf-8'); // Initialize with an empty array
+        fs.writeFileSync(birthdaysFilePath, '[]', 'utf-8');
       }
     } catch (error) {
       console.error('Error reading or parsing birthdays.json:', error);
     }
 
-    // Add the new birthday to the list
     birthdays.push(birthday);
 
-    // Write the updated birthdays back to the JSON file
     try {
       fs.writeFileSync(birthdaysFilePath, JSON.stringify(birthdays, null, 2));
       await interaction.reply(`${name}'s birthday was added successfully!`);

@@ -4,6 +4,7 @@ Celebrator is a Discord bot that helps you keep track of birthdays. It sends dir
 - `/bdadd`: Add a birthday
 - `/bdremove`: Remove a birthday
 - `/bdlist`: List all birthdays
+- `/bdedit`: Edit a birthday 
 
 ## Preview 
 
@@ -121,7 +122,7 @@ To make your bot operational:
    - In “Scopes”, select “bot” and "applications.commands".
    - Under “Bot Permissions” you can leave everything disabled.
 3. Copy the "Generated URL", paste it into a web browser, select a server, and confirm to add your bot.
-4. From there you can send your bot a dm and start configuring Birthdays with the `/bdadd`, `/bdremove` and `/bdlist` commands.
+4. From there you can send your bot a dm and start configuring Birthdays with the `/bdadd`, `/bdremove`, `/bdlist` and `/bdedit` commands.
 
 ## License
 

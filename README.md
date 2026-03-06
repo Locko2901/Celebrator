@@ -1,129 +1,150 @@
+![Made with TypeScript](https://img.shields.io/badge/Made%20with-TypeScript-3178C6?logo=typescript&logoColor=white)
+![Built with discordx](https://img.shields.io/badge/Built%20with-discordx-5865F2?logo=discord&logoColor=white)
+![MIT License](https://img.shields.io/badge/License-MIT-green)
+
 # Celebrator
 
-Celebrator is a Discord bot that helps you keep track of birthdays. It sends direct messages a week before, a day before, and on the day of someone's birthday at exactly 12:00 AM midnight in the timezone you configured. You can manage birthdays using the following commands:
-- `/bdadd`: Add a birthday
-- `/bdremove`: Remove a birthday
-- `/bdlist`: List all birthdays
-- `/bdedit`: Edit a birthday 
+A Discord bot that tracks birthdays and sends DM reminders - a week before, a day before, and on the day itself - at midnight in your configured timezone.
 
-## Preview 
+> **v2** - Full rewrite from JavaScript to TypeScript using [discordx](https://github.com/discordx-ts/discordx). Config moved from `config.json` to `.env`, PM2 dropped in favor of a multi-stage Docker build.
 
-![Project Screenshot](https://github.com/Locko2901/Celebrator/blob/main/images/1.jpg)
+## Table of Contents
 
-## Manual Installation
+- [Preview](#preview)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Upgrading from v1](#upgrading-from-v1)
+- [Common Timezones](#common-timezones)
+- [License](#license)
 
-### Prerequisites
-- Node.js
-- npm
+## Preview (old - to be updated)
 
-### Setup
+![Preview](https://github.com/Locko2901/Celebrator/blob/main/images/1.jpg)
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/Locko2901/Celebrator.git
-    cd Celebrator
-    ```
+## Features
 
-2. Install the dependencies:
-    ```sh
-    npm install
-    ```
+- **Birthday Tracking** - Add, edit, remove, and list birthdays
+- **Reminders** - Get DMs 7 days before, 1 day before, and on the day
+- **Timezone Support** - Schedule reminders at midnight in any IANA timezone
+- **Upcoming View** - See the next birthdays at a glance
+- **Persistent Storage** - JSON-based storage with automatic migration from v1
+- **Docker Ready** - Multi-stage build with Compose for easy deployment
 
-3. Install PM2 globally if not already installed:
-    ```sh
-    npm install -g pm2
-    ```
+## Prerequisites
 
-4. Install pm2-logrotate:
-    ```sh
-    pm2 install pm2-logrotate
-    ```
+- **Docker** with Compose (recommended), or
+- **Node.js** 20+
 
-5. Create the necessary directories:
-    ```sh
-    mkdir /logs
-    ```
+## Installation
 
-6. Fill out the `config.json`.
+### 1. Create a Discord Bot
 
-7. Run the project using PM2 and `ecosystem.config.js`:
-    ```sh
-    pm2 start ecosystem.config.js
-    ```
-
-## Docker Installation
-
-### Prerequisites
-- [Docker](https://docs.docker.com/engine/install/)
-
-### Setup with Docker
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/Locko2901/Celebrator.git
-    cd Celebrator
-    ```
-
-2. Fill out the `config.json`.
-
-3. Build and run using Docker:
-    ```sh
-    ./start_celebrator.sh
-    ```
-    This command may take some time.
-
----
-
-#### Tipp: Some of the Most Common Timezones Are:
-
-1. `Africa/Johannesburg` - South African Standard Time (SAST)
-2. `America/Chicago` - Central Standard Time (CST)/Central Daylight Time (CDT)
-3. `America/Los_Angeles` - Pacific Standard Time (PST)/Pacific Daylight Time (PDT)
-4. `America/Mexico_City` - Central Standard Time (CST)/Central Daylight Time (CDT)
-5. `America/New_York` - Eastern Standard Time (EST)/Eastern Daylight Time (EDT)
-6. `America/Sao_Paulo` - Brasília Time (BRT)/Brasília Summer Time (BRST)
-7. `America/Toronto` - Eastern Standard Time (EST)/Eastern Daylight Time (EDT)
-8. `Asia/Bangkok` - Indochina Time (ICT)
-9. `Asia/Dubai` - Gulf Standard Time (GST)
-10. `Asia/Kolkata` - Indian Standard Time (IST)
-11. `Asia/Seoul` - Korea Standard Time (KST)
-12. `Asia/Shanghai` - China Standard Time (CST)
-13. `Asia/Singapore` - Singapore Standard Time (SGT)
-14. `Asia/Tokyo` - Japan Standard Time (JST)
-15. `Australia/Sydney` - Australian Eastern Standard Time (AEST)/Australian Eastern Daylight Time (AEDT)
-16. `Europe/Berlin` - Central European Time (CET)/Central European Summer Time (CEST)
-17. `Europe/Istanbul` - Turkey Time (TRT)
-18. `Europe/London` - Greenwich Mean Time (GMT)/British Summer Time (BST)
-19. `Europe/Moscow` - Moscow Standard Time (MSK)
-20. `Europe/Paris` - Central European Time (CET)/Central European Summer Time (CEST)
-
-## Creating a Discord Bot Account
-
-To interact with your application, a bot account on Discord is necessary. Here are the steps to set one up:
-
-1. Navigate to the [Discord Developer Portal](https://discord.com/developers/applications) and log in with your Discord credentials.
-2. Select the "New Application" button, name your application, and click on "Create".
-3. Copy the "Application ID" from the "General Information" tab and save it.
-4. Navigate to the "Installation" tab and set the install link to *"none"*.
-5. In the "Bot" tab:
-   - (Optional) Customize your bot's username and profile image.
-   - Disable *"Public Bot"* (otherwise anyone can invite it to their server) and leave *"Requires OAuth2 Code Grant"* deactivated.
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a **New Application**.
+2. Copy the **Application ID** from the "General Information" tab.
+3. In the **Installation** tab, set the install link to *"none"*.
+4. In the **Bot** tab:
+   - Disable *"Public Bot"*.
    - Enable *"Server Members Intent"*.
-6. Under "TOKEN", click "Copy" to save your bot's token. This token and the application ID will be needed for the `config.json` file configuration.
+   - Click **"Copy"** under TOKEN to grab your bot token.
+5. In the **OAuth2 → URL Generator** tab:
+   - Scopes: `bot`, `applications.commands`
+   - Bot Permissions: none needed.
+   - Open the generated URL to invite the bot to your server.
 
-**Important:** Your bot's token is called a secret for a reason. Keep it that way!
+> **Keep your bot token secret!**
 
-### Inviting Your Bot to a Server
+### 2. Clone and Configure
 
-To make your bot operational:
+```sh
+git clone https://github.com/Locko2901/Celebrator.git
+cd Celebrator
+cp .env.example .env
+```
 
-1. Access your bot's application page in the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Navigate to the "OAuth2" tab and use the "URL Generator":
-   - In “Scopes”, select “bot” and "applications.commands".
-   - Under “Bot Permissions” you can leave everything disabled.
-3. Copy the "Generated URL", paste it into a web browser, select a server, and confirm to add your bot.
-4. From there you can send your bot a dm and start configuring Birthdays with the `/bdadd`, `/bdremove`, `/bdlist` and `/bdedit` commands.
+Edit `.env` with your values (see [Configuration](#configuration)).
+
+### 3. Run
+
+#### Docker (recommended)
+
+Requires [Docker](https://docs.docker.com/engine/install/) with Compose.
+
+```sh
+docker compose up -d --build
+```
+
+Birthday data is persisted in the `./data` volume.
+
+#### Manual
+
+```sh
+npm install
+npm run build
+npm start
+```
+
+For development:
+
+```sh
+npm run dev
+```
+
+## Configuration
+
+| Variable | Description |
+|---|---|
+| `DISCORD_TOKEN` | Bot token from the Developer Portal |
+| `DISCORD_CLIENT_ID` | Application ID from the Developer Portal |
+| `DISCORD_USER_ID` | Your Discord user ID (receives the DM reminders) |
+| `TIMEZONE` | IANA timezone for midnight scheduling (see [Common Timezones](#common-timezones)) |
+| `BDNEXT_COUNT` | How many upcoming birthdays `/bdnext` shows (default: `5`) |
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/bdadd` | Add a birthday |
+| `/bdremove` | Remove a birthday |
+| `/bdedit` | Edit a birthday |
+| `/bdlist` | List all birthdays |
+| `/bdcheck` | Check someone's birthday |
+| `/bdnext` | Show upcoming birthdays |
+
+## Upgrading from v1
+
+If you used Celebrator before the v2 rewrite, your birthday data uses the old format (`day`/`month` fields). **The bot automatically migrates your data on startup** - no manual steps required.
+
+- A backup is created at `data/birthdays.backup-<timestamp>.json` before migration
+
+## Common Timezones
+
+<details>
+<summary>Click to expand</summary>
+
+| Timezone | Name |
+|---|---|
+| `Africa/Johannesburg` | South African Standard Time (SAST) |
+| `America/Chicago` | Central Time (CT) |
+| `America/Los_Angeles` | Pacific Time (PT) |
+| `America/New_York` | Eastern Time (ET) |
+| `America/Sao_Paulo` | Brasília Time (BRT) |
+| `America/Toronto` | Eastern Time (ET) |
+| `Asia/Dubai` | Gulf Standard Time (GST) |
+| `Asia/Kolkata` | Indian Standard Time (IST) |
+| `Asia/Shanghai` | China Standard Time (CST) |
+| `Asia/Singapore` | Singapore Time (SGT) |
+| `Asia/Tokyo` | Japan Standard Time (JST) |
+| `Australia/Sydney` | Australian Eastern Time (AET) |
+| `Europe/Berlin` | Central European Time (CET) |
+| `Europe/London` | Greenwich Mean Time (GMT) |
+| `Europe/Moscow` | Moscow Standard Time (MSK) |
+| `Europe/Paris` | Central European Time (CET) |
+
+</details>
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/Locko2901/Celebrator/blob/main/LICENSE) file for details.
+[MIT](LICENSE)

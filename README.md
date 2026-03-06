@@ -167,14 +167,15 @@ When `USE_ENCRYPTION=true`, birthday data is encrypted at rest using **AES-256-G
 
 ### Security model
 
-| | |
-|---|---|
-| &check; **At-rest encryption** | Data file is AES-256-GCM encrypted and unreadable without the key |
-| &check; **Casual snooping** | Birthdays won't be visible when editing configs or doing backups |
-| &check; **Data leaks** | If only the data file is exposed (without the key), it's useless |
-| &cross; **Host with key access** | The key is in `data/.encryption_key` - anyone who can read it can decrypt |
-| &cross; **Memory inspection** | Data is decrypted in memory during bot operation |
-| &cross; **Malicious host** | If you don't trust the person running the bot, encryption won't help |
+**Protects against:**
+- **At-rest exposure** - Data file is AES-256-GCM encrypted and unreadable without the key
+- **Casual snooping** - Birthdays won't be visible when editing configs or doing backups
+- **Data leaks** - If only the data file is exposed (without the key), it's useless
+
+**Does not protect against:**
+- **Host with key access** - The key is in `data/.encryption_key` - anyone who can read it can decrypt
+- **Memory inspection** - Data is decrypted in memory during bot operation
+- **Malicious host** - If you don't trust the person running the bot, encryption won't help
 
 ## License
 

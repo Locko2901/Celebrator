@@ -1,6 +1,8 @@
 import "dotenv/config"
 import { DateTime } from "luxon"
 
+export type InstallMode = "user" | "guild"
+
 export interface Config {
   token: string;
   clientId: string;
@@ -8,6 +10,7 @@ export interface Config {
   timezone: string;
   bdnextCount: number;
   useEncryption: boolean;
+  installMode: InstallMode;
 }
 
 function env(key: string): string {
@@ -36,6 +39,8 @@ function validateTimezone(tz: string): string {
 function createConfig(): Config {
   const rawTimezone = process.env.TIMEZONE ?? "UTC"
   const useEncryption = process.env.USE_ENCRYPTION?.toLowerCase() === "true"
+  const rawInstallMode = process.env.INSTALL_MODE?.toLowerCase()
+  const installMode: InstallMode = rawInstallMode === "guild" ? "guild" : "user"
 
   return {
     token: env("DISCORD_TOKEN"),
@@ -44,6 +49,7 @@ function createConfig(): Config {
     timezone: validateTimezone(rawTimezone),
     bdnextCount: Math.min(25, Math.max(1, parseInt(process.env.BDNEXT_COUNT ?? "5", 10) || 5)),
     useEncryption,
+    installMode,
   }
 }
 

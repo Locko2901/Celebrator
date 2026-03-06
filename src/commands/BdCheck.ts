@@ -6,10 +6,15 @@ import {
 import { Colors, Emoji, prettyDateFromString, commandEmbed } from "../ui/embeds.js"
 import { nameAutocomplete } from "../utils/autocomplete.js"
 import { requireBirthday } from "../utils/validation.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdCheck {
-  @Slash({ name: "bdcheck", description: "Check someone's birthday date" })
+  @Slash({
+    name: "bdcheck",
+    description: "Check someone's birthday date",
+    ...slashOptions,
+  })
   async check(
     @SlashOption({
       name: "name",

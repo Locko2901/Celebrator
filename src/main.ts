@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { dirname, importx } from "@discordx/importer"
-import { Events, IntentsBitField, EmbedBuilder } from "discord.js"
+import { Events, EmbedBuilder, IntentsBitField } from "discord.js"
 import { Client } from "discordx"
 import { DateTime } from "luxon"
 import { config } from "./config.js"
@@ -12,18 +12,67 @@ import { Colors, Emoji, prettyDate, formatNameList, pluralize } from "./ui/embed
 import { migrateIfNeeded } from "./utils/migrate.js"
 
 const client = new Client({
-  intents: [IntentsBitField.Flags.GuildMembers],
+  intents: config.installMode === "guild" ? [IntentsBitField.Flags.GuildMembers] : [],
   silent: false,
+  botGuilds: config.installMode === "guild" ? undefined : [],
 })
+
+async function initializeDM(bot: Client): Promise<void> {
+  const maxAttempts = 12
+  let attempts = 0
+
+  const tryDM = async (): Promise<boolean> => {
+    try {
+      const user = await bot.users.fetch(config.userId)
+      const dm = await user.createDM()
+
+      const messages = await dm.messages.fetch({ limit: 1 })
+
+      if (messages.size === 0) {
+        const greeting = new EmbedBuilder()
+          .setColor(Colors.primary)
+          .setAuthor({ name: `${Emoji.party} ${bot.user?.displayName} is ready!` })
+          .setDescription("You'll receive birthday reminders here – a week before, a day before, and on the day itself.")
+          .setTimestamp()
+
+        await dm.send({ embeds: [greeting] })
+        console.log(`Greeting sent to ${user.tag}`)
+      }
+
+      console.log(`DM channel established with ${user.tag} (${dm.id})`)
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  if (await tryDM()) {return}
+
+  console.log("Could not establish DM channel - will retry every 5 seconds...")
+
+  const interval = setInterval(async () => {
+    attempts++
+
+    if (await tryDM()) {
+      clearInterval(interval)
+    } else if (attempts >= maxAttempts) {
+      clearInterval(interval)
+      console.warn("Failed to establish DM channel after 1 minute. Reminders may not work until user interacts with the bot.")
+    }
+  }, 5000)
+}
 
 client.once(Events.ClientReady, async () => {
   await client.initApplicationCommands()
-  console.log(`${client.user?.tag} is online.`)
+  console.log(`${client.user?.tag} is online. (${config.installMode} install mode)`)
+
+  await initializeDM(client)
 
   if (config.timezone) {
     scheduleAtMidnight(config.timezone, remindBirthdays, client)
   } else {
-    console.log("Timezone not configured – birthday reminders disabled.")
+    console.log("Timezone not configured - birthday reminders disabled.")
   }
 })
 

@@ -10,10 +10,15 @@ import {
 } from "../ui/embeds.js"
 import { MAX_NAME_LENGTH } from "../utils/constants.js"
 import { validateName, validateDate } from "../utils/validation.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdAdd {
-  @Slash({ name: "bdadd", description: "Add a birthday" })
+  @Slash({
+    name: "bdadd",
+    description: "Add a birthday",
+    ...slashOptions,
+  })
   async add(
     @SlashOption({
       name: "name",

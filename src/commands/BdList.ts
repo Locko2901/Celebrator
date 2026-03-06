@@ -8,10 +8,15 @@ import {
   emptyListEmbed, formatListEntry, formatMonthHeader, birthdayCount, handleCommandError, listEmbed, groupByMonth,
 } from "../ui/embeds.js"
 import { MAX_EMBED_DESCRIPTION, MAX_EMBEDS_PER_MESSAGE } from "../utils/constants.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdList {
-  @Slash({ name: "bdlist", description: "List all birthdays" })
+  @Slash({
+    name: "bdlist",
+    description: "List all birthdays",
+    ...slashOptions,
+  })
   async list(interaction: CommandInteraction): Promise<void> {
     try {
       const birthdays = await BirthdayService.sorted()

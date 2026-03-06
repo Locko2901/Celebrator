@@ -9,7 +9,7 @@
 
 import { readFile, writeFile, copyFile, access } from "fs/promises"
 import { randomUUID } from "crypto"
-import { DATA_PATH } from "./constants.js"
+import { DATA_PATH_JSON } from "./constants.js"
 
 interface V1Birthday {
   name: string
@@ -97,14 +97,14 @@ export interface MigrationResult {
 }
 
 export async function migrateIfNeeded(): Promise<MigrationResult> {
-  if (!(await fileExists(DATA_PATH))) {
+  if (!(await fileExists(DATA_PATH_JSON))) {
     return { migrated: false, format: "empty", count: 0 }
   }
 
   let raw: string
 
   try {
-    raw = await readFile(DATA_PATH, "utf-8")
+    raw = await readFile(DATA_PATH_JSON, "utf-8")
   } catch {
     return { migrated: false, format: "empty", count: 0 }
   }
@@ -138,14 +138,14 @@ export async function migrateIfNeeded(): Promise<MigrationResult> {
     return { migrated: false, format, count: data.length }
   }
 
-  const backupPath = DATA_PATH.replace(".json", `.backup-${Date.now()}.json`)
+  const backupPath = DATA_PATH_JSON.replace(".json", `.backup-${Date.now()}.json`)
 
-  await copyFile(DATA_PATH, backupPath)
+  await copyFile(DATA_PATH_JSON, backupPath)
   console.log(`[migrate] Created backup: ${backupPath}`)
 
   const migrated = migrateToV2(data, format)
 
-  await writeFile(DATA_PATH, JSON.stringify(migrated, null, 2))
+  await writeFile(DATA_PATH_JSON, JSON.stringify(migrated, null, 2))
   console.log(`[migrate] Migrated ${migrated.length} entries from ${format} to v2 format`)
 
   return {

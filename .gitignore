@@ -2,4 +2,7 @@ node_modules/
 dist/
 logs/
 .env
-birthdays.json
+
+data/birthdays.json
+data/birthdays.encrypted
+data/.encryption_key

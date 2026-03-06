@@ -9,10 +9,15 @@ import { Colors, Emoji, prettyDate, warningEmbed, replyEphemeral, handleCommandE
 import { MAX_NAME_LENGTH } from "../utils/constants.js"
 import { nameAutocomplete } from "../utils/autocomplete.js"
 import { requireBirthday, validateName, validateDate } from "../utils/validation.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdEdit {
-  @Slash({ name: "bdedit", description: "Edit a birthday" })
+  @Slash({
+    name: "bdedit",
+    description: "Edit a birthday",
+    ...slashOptions,
+  })
   async edit(
     @SlashOption({
       name: "name",

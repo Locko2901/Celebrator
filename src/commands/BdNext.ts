@@ -6,10 +6,15 @@ import { config } from "../config.js"
 import {
   Colors, Emoji, emptyListEmbed, formatUpcomingEntry, formatMonthHeader, birthdayCount, handleCommandError, listEmbed, groupByMonth,
 } from "../ui/embeds.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdNext {
-  @Slash({ name: "bdnext", description: "Show the next upcoming birthdays" })
+  @Slash({
+    name: "bdnext",
+    description: "Show the next upcoming birthdays",
+    ...slashOptions,
+  })
   async next(interaction: CommandInteraction): Promise<void> {
     try {
       const birthdays = await BirthdayService.sorted()

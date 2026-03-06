@@ -7,10 +7,15 @@ import { BirthdayService } from "../services/BirthdayService.js"
 import { Colors, Emoji, prettyDateFromString, birthdayCount, handleCommandError, commandEmbed } from "../ui/embeds.js"
 import { nameAutocomplete } from "../utils/autocomplete.js"
 import { requireBirthday } from "../utils/validation.js"
+import { slashOptions } from "../utils/slashConfig.js"
 
 @Discord()
 export class BdRemove {
-  @Slash({ name: "bdremove", description: "Remove a birthday" })
+  @Slash({
+    name: "bdremove",
+    description: "Remove a birthday",
+    ...slashOptions,
+  })
   async remove(
     @SlashOption({
       name: "name",

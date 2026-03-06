@@ -39,6 +39,7 @@ export function encrypt(plaintext: string, password: string): string {
 }
 
 export function decrypt(ciphertext: string, password: string): string {
+  
   if (!ciphertext || !password) {
     throw new Error("Ciphertext and password are required")
   }
@@ -46,6 +47,7 @@ export function decrypt(ciphertext: string, password: string): string {
   const combined = Buffer.from(ciphertext, "base64")
 
   const minLength = SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH + 1
+
   if (combined.length < minLength) {
     throw new Error("Ciphertext too short to be valid")
   }

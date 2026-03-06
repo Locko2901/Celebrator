@@ -5,7 +5,8 @@ import { Client } from "discordx"
 import { DateTime } from "luxon"
 import { config } from "./config.js"
 import { scheduleAtMidnight } from "./services/Scheduler.js"
-import { BirthdayService } from "./services/BirthdayService.js"
+import { BirthdayService, initBirthdayCache } from "./services/BirthdayService.js"
+import { initEncryption } from "./services/encryption/index.js"
 import { type Birthday, matchesDate, parseDate } from "./types.js"
 import { Colors, Emoji, prettyDate, formatNameList, pluralize } from "./ui/embeds.js"
 import { migrateIfNeeded } from "./utils/migrate.js"
@@ -113,6 +114,9 @@ async function remindBirthdays(bot: Client): Promise<void> {
 
 try {
   await migrateIfNeeded()
+  const { key, dataPath } = await initEncryption()
+
+  initBirthdayCache(dataPath, key)
 
   await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`)
   await client.login(config.token)

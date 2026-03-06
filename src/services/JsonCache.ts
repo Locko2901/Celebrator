@@ -1,6 +1,8 @@
 import { readFile, writeFile, mkdir, rename } from "fs/promises"
 import { dirname, join } from "path"
 
+import { decrypt, encrypt, isEncrypted } from "./encryption/index.js"
+
 class Mutex {
   private locked = false
   private queue: Array<() => void> = []
@@ -35,13 +37,21 @@ export class JsonCache<T> {
   constructor(
     private readonly filePath: string,
     private readonly defaultValue: T,
+    private readonly encryptionKey: string | null = null,
   ) {}
 
-  /** Internal read without mutex - caller must hold the lock */
   private async _readUnsafe(): Promise<T> {
     if (this.cache !== null) {return this.cache}
     try {
-      const raw = await readFile(this.filePath, "utf-8")
+      let raw = await readFile(this.filePath, "utf-8")
+
+      if (this.encryptionKey !== null && isEncrypted(raw)) {
+        try {
+          raw = decrypt(raw, this.encryptionKey)
+        } catch {
+          throw new Error(`Failed to decrypt ${this.filePath}. Wrong ENCRYPTION_KEY?`)
+        }
+      }
 
       this.cache = JSON.parse(raw) as T
 
@@ -72,7 +82,13 @@ export class JsonCache<T> {
     await mkdir(dir, { recursive: true })
     const tempPath = join(dir, `.${Date.now()}.tmp`)
 
-    await writeFile(tempPath, JSON.stringify(data, null, 2))
+    let content = JSON.stringify(data, null, 2)
+
+    if (this.encryptionKey !== null) {
+      content = encrypt(content, this.encryptionKey)
+    }
+
+    await writeFile(tempPath, content)
     await rename(tempPath, this.filePath)
     this.cache = data
   }

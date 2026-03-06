@@ -18,6 +18,7 @@ A Discord bot that tracks birthdays and sends DM reminders - a week before, a da
 - [Commands](#commands)
 - [Upgrading from v1](#upgrading-from-v1)
 - [Common Timezones](#common-timezones)
+- [Encryption](#encryption)
 - [License](#license)
 
 ## Preview (old - to be updated)
@@ -31,6 +32,7 @@ A Discord bot that tracks birthdays and sends DM reminders - a week before, a da
 - **Timezone Support** - Schedule reminders at midnight in any IANA timezone
 - **Upcoming View** - See the next birthdays at a glance
 - **Persistent Storage** - JSON-based storage with automatic migration from v1
+- **Optional Encryption** - AES-256-GCM encryption for data at rest
 - **Docker Ready** - Multi-stage build with Compose for easy deployment
 
 ## Prerequisites
@@ -101,6 +103,7 @@ npm run dev
 | `DISCORD_USER_ID` | Your Discord user ID (receives the DM reminders) |
 | `TIMEZONE` | IANA timezone for midnight scheduling (see [Common Timezones](#common-timezones)) |
 | `BDNEXT_COUNT` | How many upcoming birthdays `/bdnext` shows (default: `5`) |
+| `USE_ENCRYPTION` | `true`/`false` - encrypts the data file with an auto-generated key stored in `data/.encryption_key`. Toggling to `false` decrypts the file. |
 
 ## Commands
 
@@ -110,8 +113,8 @@ npm run dev
 | `/bdremove` | Remove a birthday |
 | `/bdedit` | Edit a birthday |
 | `/bdlist` | List all birthdays |
-| `/bdcheck` | Check someone's birthday |
-| `/bdnext` | Show upcoming birthdays |
+| `/bdcheck` | Check someone's birthday date |
+| `/bdnext` | Show the next upcoming birthdays |
 
 ## Upgrading from v1
 
@@ -144,6 +147,34 @@ If you used Celebrator before the v2 rewrite, your birthday data uses the old fo
 | `Europe/Paris` | Central European Time (CET) |
 
 </details>
+
+## Encryption
+
+### Why?
+
+If you're hosting the bot for someone else (a friend, etc.), encryption keeps their birthday data private - you won't accidentally stumble across it during routine maintenance. To actually read it, you'd need to either manually decrypt with the key, or toggle `USE_ENCRYPTION` and restart the bot.
+
+This is **privacy from convenience, not security from adversaries**. If you need stronger guarantees, the person whose data it is should host the bot themselves.
+
+### How it works
+
+When `USE_ENCRYPTION=true`, birthday data is encrypted at rest using **AES-256-GCM** with keys derived via **scrypt**. On first run, a 32-byte key is auto-generated and stored in `data/.encryption_key` with restricted permissions (`0600`).
+
+- Data is saved to `data/birthdays.encrypted` instead of `birthdays.json`
+- Toggling `USE_ENCRYPTION=false` automatically decrypts and migrates back to plain JSON
+
+> This should go without saying, but if you lose `data/.encryption_key` while encryption is enabled, your data is gone.
+
+### Security model
+
+| | |
+|---|---|
+| &check; **At-rest encryption** | Data file is AES-256-GCM encrypted and unreadable without the key |
+| &check; **Casual snooping** | Birthdays won't be visible when editing configs or doing backups |
+| &check; **Data leaks** | If only the data file is exposed (without the key), it's useless |
+| &cross; **Host with key access** | The key is in `data/.encryption_key` - anyone who can read it can decrypt |
+| &cross; **Memory inspection** | Data is decrypted in memory during bot operation |
+| &cross; **Malicious host** | If you don't trust the person running the bot, encryption won't help |
 
 ## License
 

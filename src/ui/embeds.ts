@@ -1,4 +1,4 @@
-import { EmbedBuilder, MessageFlags, type CommandInteraction } from "discord.js"
+import { EmbedBuilder, MessageFlags, escapeMarkdown, type CommandInteraction } from "discord.js"
 import { parseDate } from "../types.js"
 
 export const Colors = {
@@ -59,7 +59,7 @@ export function birthdayCount(count: number, suffix = "tracked"): string {
 }
 
 export function formatNameList(names: string[]): string {
-  return names.map((n) => `**${n}**`).join(", ")
+  return names.map((n) => `**${escapeMarkdown(n)}**`).join(", ")
 }
 
 export function formatMonthHeader(month: number): string {
@@ -195,10 +195,10 @@ export function formatListEntry(day: number, name: string, highlight = false): s
   const dayStr = ordinal(day).padStart(5)
 
   if (highlight) {
-    return `${WS.indent}${Sym.arrow} \`${dayStr}\` ${Sym.dash} **${name}**`
+    return `${WS.indent}${Sym.arrow} \`${dayStr}\` ${Sym.dash} **${escapeMarkdown(name)}**`
   }
 
-  return `${WS.indent}\`${dayStr}\` ${Sym.dash} ${name}`
+  return `${WS.indent}\`${dayStr}\` ${Sym.dash} ${escapeMarkdown(name)}`
 }
 
 export function formatUpcomingEntry(

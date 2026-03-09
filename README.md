@@ -24,9 +24,9 @@ A Discord bot that tracks birthdays and sends DM reminders - a week before, a da
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
-## Preview (old - to be updated)
+## Preview
 
-![Preview](https://github.com/Locko2901/Celebrator/blob/main/images/1.jpg)
+![Preview](https://github.com/Locko2901/Celebrator/blob/main/images/1.png)
 
 ## How It Works
 

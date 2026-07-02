@@ -6,3 +6,4 @@ logs/
 data/birthdays.json
 data/birthdays.encrypted
 data/.encryption_key
+data/dashboard.json

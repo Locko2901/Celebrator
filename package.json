@@ -26,7 +26,7 @@
     "@types/luxon": "^3.4.2",
     "@types/node": "^20.19.35",
     "eslint": "^10.0.2",
-    "tsx": "^4.15.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.56.1"
   }

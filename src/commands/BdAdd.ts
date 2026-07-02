@@ -4,6 +4,7 @@ import {
   type CommandInteraction,
 } from "discord.js"
 import { BirthdayService, DuplicateNameError } from "../services/BirthdayService.js"
+import { DashboardService } from "../services/DashboardService.js"
 import { userInputToDate } from "../types.js"
 import {
   Colors, Emoji, prettyDateFromString, birthdayCount, formatNameList, handleCommandError, commandEmbed, warningEmbed, replyEphemeral,
@@ -67,7 +68,8 @@ export class BdAdd {
         })
       }
 
-      await interaction.reply({ embeds: [embed] })
+      await replyEphemeral(interaction, embed)
+      await DashboardService.refresh(interaction.client)
     } catch (error) {
       if (error instanceof DuplicateNameError) {
         await replyEphemeral(interaction, warningEmbed(`A birthday entry for **${error.name}** already exists.`))

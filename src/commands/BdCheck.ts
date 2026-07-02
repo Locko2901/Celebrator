@@ -3,7 +3,7 @@ import {
   ApplicationCommandOptionType,
   type CommandInteraction,
 } from "discord.js"
-import { Colors, Emoji, prettyDateFromString, commandEmbed } from "../ui/embeds.js"
+import { Colors, Emoji, prettyDateFromString, commandEmbed, replyEphemeral } from "../ui/embeds.js"
 import { nameAutocomplete } from "../utils/autocomplete.js"
 import { requireBirthday } from "../utils/validation.js"
 import { slashOptions } from "../utils/slashConfig.js"
@@ -38,6 +38,6 @@ export class BdCheck {
       description: `**${existing.name}**'s birthday is on **${prettyDateFromString(existing.date)}**.`,
     })
 
-    await interaction.reply({ embeds: [embed] })
+    await replyEphemeral(interaction, embed)
   }
 }

@@ -4,7 +4,8 @@ import {
   type CommandInteraction,
 } from "discord.js"
 import { BirthdayService } from "../services/BirthdayService.js"
-import { Colors, Emoji, prettyDateFromString, birthdayCount, handleCommandError, commandEmbed } from "../ui/embeds.js"
+import { DashboardService } from "../services/DashboardService.js"
+import { Colors, Emoji, prettyDateFromString, birthdayCount, handleCommandError, commandEmbed, replyEphemeral } from "../ui/embeds.js"
 import { nameAutocomplete } from "../utils/autocomplete.js"
 import { requireBirthday } from "../utils/validation.js"
 import { slashOptions } from "../utils/slashConfig.js"
@@ -43,7 +44,8 @@ export class BdRemove {
         footer: birthdayCount(count, "remaining"),
       })
 
-      await interaction.reply({ embeds: [embed] })
+      await replyEphemeral(interaction, embed)
+      await DashboardService.refresh(interaction.client)
     } catch (error) {
       await handleCommandError(interaction, "removing the birthday", error)
     }

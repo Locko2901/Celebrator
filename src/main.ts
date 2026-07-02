@@ -6,9 +6,11 @@ import { DateTime } from "luxon"
 import { config } from "./config.js"
 import { scheduleAtMidnight } from "./services/Scheduler.js"
 import { BirthdayService, initBirthdayCache } from "./services/BirthdayService.js"
+import { DashboardService, initDashboardCache } from "./services/DashboardService.js"
 import { initEncryption } from "./services/encryption/index.js"
 import { type Birthday, matchesDate, parseDate } from "./types.js"
 import { Colors, Emoji, prettyDate, formatNameList, pluralize } from "./ui/embeds.js"
+import { DASHBOARD_PATH_JSON } from "./utils/constants.js"
 import { migrateIfNeeded } from "./utils/migrate.js"
 
 const client = new Client({
@@ -17,60 +19,57 @@ const client = new Client({
   botGuilds: config.installMode === "guild" ? undefined : [],
 })
 
-async function initializeDM(bot: Client): Promise<void> {
-  const maxAttempts = 12
-  let attempts = 0
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
-  const tryDM = async (): Promise<boolean> => {
+async function establishDM(bot: Client): Promise<boolean> {
+  const maxAttempts = 12
+
+  for (let attempt = 0; attempt <= maxAttempts; attempt++) {
     try {
       const user = await bot.users.fetch(config.userId)
       const dm = await user.createDM()
 
-      const messages = await dm.messages.fetch({ limit: 1 })
-
-      if (messages.size === 0) {
-        const greeting = new EmbedBuilder()
-          .setColor(Colors.primary)
-          .setAuthor({ name: `${Emoji.party} ${bot.user?.displayName} is ready!` })
-          .setDescription("You'll receive birthday reminders here – a week before, a day before, and on the day itself.")
-          .setTimestamp()
-
-        await dm.send({ embeds: [greeting] })
-        console.log(`Greeting sent to ${user.tag}`)
-      }
-
+      await dm.messages.fetch({ limit: 1 })
       console.log(`DM channel established with ${user.tag} (${dm.id})`)
 
       return true
     } catch {
-      return false
+      if (attempt < maxAttempts) {
+        await delay(5000)
+      }
     }
   }
 
-  if (await tryDM()) {return}
+  return false
+}
 
-  console.log("Could not establish DM channel - will retry every 5 seconds...")
+async function bootstrapDashboard(bot: Client): Promise<void> {
+  const established = await establishDM(bot)
 
-  const interval = setInterval(async () => {
-    attempts++
+  if (!established) {
+    console.warn(
+      "Failed to establish DM channel after 1 minute. Reminders may not work until user interacts with the bot.",
+    )
 
-    if (await tryDM()) {
-      clearInterval(interval)
-    } else if (attempts >= maxAttempts) {
-      clearInterval(interval)
-      console.warn("Failed to establish DM channel after 1 minute. Reminders may not work until user interacts with the bot.")
-    }
-  }, 5000)
+    return
+  }
+
+  await DashboardService.prune(bot)
+  await DashboardService.refresh(bot)
 }
 
 client.once(Events.ClientReady, async () => {
   await client.initApplicationCommands()
   console.log(`${client.user?.tag} is online. (${config.installMode} install mode)`)
 
-  await initializeDM(client)
+  bootstrapDashboard(client).catch((error: unknown) => {
+    console.error("Failed to bootstrap dashboard:", error)
+  })
 
   if (config.timezone) {
-    scheduleAtMidnight(config.timezone, remindBirthdays, client)
+    scheduleAtMidnight(config.timezone, nightlyTask, client)
   } else {
     console.log("Timezone not configured - birthday reminders disabled.")
   }
@@ -80,10 +79,14 @@ client.on(Events.InteractionCreate, (interaction) => {
   client.executeInteraction(interaction)
 })
 
+async function nightlyTask(bot: Client): Promise<void> {
+  await remindBirthdays(bot)
+  await DashboardService.refresh(bot)
+}
+
 async function remindBirthdays(bot: Client): Promise<void> {
   try {
-    const { timezone, userId } = config
-    const user = await bot.users.fetch(userId)
+    const { timezone } = config
     const now = DateTime.now().setZone(timezone)
 
     let birthdays: Birthday[]
@@ -102,59 +105,69 @@ async function remindBirthdays(bot: Client): Promise<void> {
     const week = now.plus({ days: 7 })
     const weekList = birthdays.filter((b) => matchesDate(b, week))
 
+    const embeds: EmbedBuilder[] = []
+
     if (todayList.length > 0) {
-      const names = formatNameList(todayList.map(b => b.name))
-      const embed = new EmbedBuilder()
-        .setColor(Colors.gold)
-        .setAuthor({ name: `${Emoji.party} Happy Birthday!` })
-        .setDescription(
-          todayList.length === 1
-            ? `Today is ${names}'s birthday!`
-            : `Today is ${names}' birthdays!`,
-        )
-        .addFields(
-          ...todayList.map((b) => {
-            const { month, day } = parseDate(b.date)
+      const names = formatNameList(todayList.map((b) => b.name))
 
-            return { name: b.name, value: prettyDate(month, day), inline: true }
-          }),
-        )
-        .setTimestamp()
+      embeds.push(
+        new EmbedBuilder()
+          .setColor(Colors.gold)
+          .setAuthor({ name: `${Emoji.party} Happy Birthday!` })
+          .setDescription(
+            todayList.length === 1
+              ? `Today is ${names}'s birthday!`
+              : `Today is ${names}' birthdays!`,
+          )
+          .addFields(
+            ...todayList.map((b) => {
+              const { month, day } = parseDate(b.date)
 
-      await user.send({ embeds: [embed] })
-      console.log(`Today reminder sent for: ${todayList.map((b) => b.name).join(", ")}`)
+              return { name: b.name, value: prettyDate(month, day), inline: true }
+            }),
+          )
+          .setTimestamp(),
+      )
     }
 
     if (tmrwList.length > 0) {
-      const names = formatNameList(tmrwList.map(b => b.name))
-      const embed = new EmbedBuilder()
-        .setColor(Colors.birthday)
-        .setAuthor({ name: `${Emoji.calendar} Tomorrow's ${pluralize(tmrwList.length, "Birthday")}` })
-        .setDescription(
-          tmrwList.length === 1
-            ? `${names}'s birthday is tomorrow!`
-            : `${names} have birthdays tomorrow!`,
-        )
-        .setTimestamp()
+      const names = formatNameList(tmrwList.map((b) => b.name))
 
-      await user.send({ embeds: [embed] })
-      console.log(`Tomorrow reminder sent for: ${tmrwList.map((b) => b.name).join(", ")}`)
+      embeds.push(
+        new EmbedBuilder()
+          .setColor(Colors.birthday)
+          .setAuthor({ name: `${Emoji.calendar} Tomorrow's ${pluralize(tmrwList.length, "Birthday")}` })
+          .setDescription(
+            tmrwList.length === 1
+              ? `${names}'s birthday is tomorrow!`
+              : `${names} have birthdays tomorrow!`,
+          )
+          .setTimestamp(),
+      )
     }
 
     if (weekList.length > 0) {
-      const names = formatNameList(weekList.map(b => b.name))
-      const embed = new EmbedBuilder()
-        .setColor(Colors.primary)
-        .setAuthor({ name: `${Emoji.reminder} ${pluralize(weekList.length, "Birthday")} in a Week` })
-        .setDescription(
-          weekList.length === 1
-            ? `Heads up – ${names}'s birthday is in a week!`
-            : `Heads up – ${names} have birthdays in a week!`,
-        )
-        .setTimestamp()
+      const names = formatNameList(weekList.map((b) => b.name))
 
-      await user.send({ embeds: [embed] })
-      console.log(`Week reminder sent for: ${weekList.map((b) => b.name).join(", ")}`)
+      embeds.push(
+        new EmbedBuilder()
+          .setColor(Colors.primary)
+          .setAuthor({ name: `${Emoji.reminder} ${pluralize(weekList.length, "Birthday")} in a Week` })
+          .setDescription(
+            weekList.length === 1
+              ? `Heads up – ${names}'s birthday is in a week!`
+              : `Heads up – ${names} have birthdays in a week!`,
+          )
+          .setTimestamp(),
+      )
+    }
+
+    await DashboardService.sendReminders(bot, embeds)
+
+    if (embeds.length > 0) {
+      console.log(
+        `Reminders sent (today: ${todayList.length}, tomorrow: ${tmrwList.length}, week: ${weekList.length})`,
+      )
     }
   } catch (error) {
     console.error("Failed to execute remindBirthdays:", error)
@@ -166,6 +179,7 @@ try {
   const { key, dataPath } = await initEncryption()
 
   initBirthdayCache(dataPath, key)
+  initDashboardCache(DASHBOARD_PATH_JSON, key)
 
   await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`)
   await client.login(config.token)

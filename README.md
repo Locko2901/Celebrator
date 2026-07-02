@@ -4,8 +4,10 @@
 
 # Celebrator
 
-A Discord bot that tracks birthdays and sends DM reminders - a week before, a day before, and on the day itself - at midnight in your configured timezone.
+A Discord bot that tracks birthdays and sends DM reminders - a week before, a day before, and on the day itself - at midnight in your configured timezone. Your DM stays clean: a single, always-current list and upcoming view that update in place.
 
+> **v3** - Self-updating DM dashboard. Instead of stacking a new message every time, the bot now keeps **one** birthday list and **one** upcoming view, editing them in place. Daily reminders are sent as a single fresh message (so you still get the ping) and replaced each day. Lookups (`/bdcheck`) and command confirmations are ephemeral, so they never clutter the DM. On startup the bot prunes its own stale messages.
+>
 > **v2** - Full rewrite from JavaScript to TypeScript using [discordx](https://github.com/discordx-ts/discordx). Config moved from `config.json` to `.env`, PM2 dropped in favor of a multi-stage Docker build.
 
 ## Table of Contents
@@ -30,14 +32,26 @@ A Discord bot that tracks birthdays and sends DM reminders - a week before, a da
 
 ## How It Works
 
-Celebrator is a single-user Discord bot - it runs for one person at a time. Birthdays are stored in a local JSON file (optionally encrypted) and a built-in scheduler checks daily at midnight in your configured timezone, sending DM reminders at 7 days, 1 day, and on the day itself.
+Celebrator is a single-user Discord bot - it runs for one person at a time. Birthdays are stored in a local JSON file (optionally encrypted) and a built-in scheduler runs daily at midnight in your configured timezone.
+
+Rather than posting a new message every time, the bot maintains a small **DM dashboard** made of two persistent messages that it edits in place:
+
+- **Birthday List** - every tracked birthday, grouped by month
+- **Upcoming** - the next birthdays at a glance
+
+These two messages are refreshed automatically whenever you add, edit, or remove a birthday, and again every night. Running `/bdlist` or `/bdnext` just re-renders them on demand; the slash command itself replies with a small ephemeral confirmation that only you can see.
+
+**Reminders** are sent separately. Each midnight the bot checks for birthdays that are today, exactly 1 day away, and exactly 7 days away. Any matches are combined into **one fresh DM message** (one embed per bucket) so you get a notification. That message is deleted and replaced on the next run, so only the most recent day's reminder is ever present.
+
+The bot keeps the DM tidy by deleting its own stale messages on startup. Note that Discord only lets a bot delete messages **it** sent - it cannot delete messages you typed yourself.
 
 ## Features
 
 - **Birthday Tracking** - Add, edit, remove, and list birthdays
-- **Reminders** - Get DMs 7 days before, 1 day before, and on the day
+- **Self-Updating Dashboard** - One persistent list + upcoming message, edited in place instead of stacking new ones
+- **Reminders** - Get a DM 7 days before, 1 day before, and on the day
+- **Clean DM** - Ephemeral command replies and automatic pruning of the bot's own stale messages
 - **Timezone Support** - Schedule reminders at midnight in any IANA timezone
-- **Upcoming View** - See the next birthdays at a glance
 - **Persistent Storage** - JSON-based storage with automatic migration from v1
 - **Optional Encryption** - AES-256-GCM encryption for data at rest
 - **Docker Ready** - Multi-stage build with Compose for easy deployment
@@ -128,14 +142,16 @@ npm start
 
 ## Commands
 
+All command replies are ephemeral (visible only to you). `/bdlist` and `/bdnext` refresh the persistent dashboard messages in your DM rather than posting new ones.
+
 | Command | Description |
 |---|---|
-| `/bdadd` | Add a birthday |
-| `/bdremove` | Remove a birthday |
-| `/bdedit` | Edit a birthday |
-| `/bdlist` | List all birthdays |
-| `/bdcheck` | Check someone's birthday date |
-| `/bdnext` | Show the next upcoming birthdays |
+| `/bdadd` | Add a birthday (refreshes the dashboard) |
+| `/bdremove` | Remove a birthday (refreshes the dashboard) |
+| `/bdedit` | Edit a birthday (refreshes the dashboard) |
+| `/bdlist` | Refresh the birthday list message |
+| `/bdcheck` | Check someone's birthday date (ephemeral) |
+| `/bdnext` | Refresh the upcoming birthdays message |
 
 ## Development
 
@@ -219,6 +235,7 @@ When `USE_ENCRYPTION=true`, birthday data is encrypted at rest using **AES-256-G
 | Bot appears offline | User-installed apps always show offline in friend lists - this is a Discord limitation | The bot is still running. Use its DM to interact. |
 | Commands don't show up | Slash commands haven't synced yet | Wait a minute after first launch. If they still don't appear, check that `DISCORD_CLIENT_ID` is correct. |
 | Wrong reminder time | Timezone mismatch | Verify `TIMEZONE` in `.env` is a valid IANA timezone (see [Common Timezones](#common-timezones)). |
+| Old messages remain in the DM after startup | They were sent by **you**, not the bot | Discord only lets a bot delete its own messages. Delete your own messages manually; the bot cleans up the ones it sent. |
 
 ## License
 

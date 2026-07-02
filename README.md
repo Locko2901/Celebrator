@@ -20,6 +20,7 @@ A Discord bot that tracks birthdays and sends DM reminders - a week before, a da
 - [Configuration](#configuration)
 - [Commands](#commands)
 - [Development](#development)
+- [Updating](#updating)
 - [Upgrading from v1](#upgrading-from-v1)
 - [Common Timezones](#common-timezones)
 - [Encryption](#encryption)
@@ -59,7 +60,7 @@ The bot keeps the DM tidy by deleting its own stale messages on startup. Note th
 ## Prerequisites
 
 - **Docker** with Compose (recommended), or
-- **Node.js** 20+
+- **Node.js** 20+ (Node 22 LTS or newer recommended)
 
 ## Installation
 
@@ -114,6 +115,54 @@ Edit `.env` with your values (see [Configuration](#configuration)).
 
 Requires [Docker](https://docs.docker.com/engine/install/) with Compose.
 
+**Option A - Pre-built image (GHCR)**
+
+Published automatically to the GitHub Container Registry on every release. No build step, no toolchain needed - and no need to clone the repo.
+
+In an empty directory, create a `docker-compose.yml`:
+
+```yaml
+# docker-compose.yml
+services:
+  celebrator:
+    image: ghcr.io/locko2901/celebrator:latest
+    container_name: celebrator
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+```
+
+Create a `.env` next to it with your values (see [Configuration](#configuration)):
+
+```sh
+# .env
+DISCORD_TOKEN=your-bot-token
+DISCORD_CLIENT_ID=your-application-id
+DISCORD_USER_ID=your-user-id
+TIMEZONE=Europe/Berlin
+INSTALL_MODE=user
+```
+
+Then start it:
+
+```sh
+docker compose up -d
+```
+
+Available tags:
+
+| Tag | Description |
+|---|---|
+| `latest` | Latest stable release |
+| `3`, `3.1`, `3.1.0` | Pin to a major / minor / exact version |
+| `dev` | Latest build from `main` (may be unstable) |
+| `sha-<short>` | A specific commit |
+
+Multi-arch images are provided for `linux/amd64` and `linux/arm64`.
+
+**Option B - Build locally**
+
 ```sh
 docker compose up -d --build
 ```
@@ -165,6 +214,44 @@ Linting:
 npm run lint
 npm run lint:fix
 ```
+
+Before committing, run the same checks CI runs to catch failures early:
+
+```sh
+./precommit.sh        # lint + build
+./precommit.sh --fix  # auto-fix lint issues first
+```
+
+> Commits follow the [Conventional Commits](https://www.conventionalcommits.org/) spec (`feat:`, `fix:`, `chore:`, etc.). Releases, version bumps, and the changelog are automated via [release-please](https://github.com/googleapis/release-please) and published to GHCR by CI.
+
+## Updating
+
+### Docker (pre-built image)
+
+```sh
+docker compose pull
+docker compose up -d
+```
+
+This pulls the newest image for your tag (e.g. `latest`) and recreates the container. Your birthdays stay put in the `./data` volume. To move between major versions, bump the tag in `docker-compose.yml` (e.g. `:3` -> `:4`) first.
+
+### Docker (local build)
+
+```sh
+git pull
+docker compose up -d --build
+```
+
+### Manual
+
+```sh
+git pull
+npm install
+npm run build
+npm start
+```
+
+> Data migrations (if any) run automatically on startup, and a backup of your birthday file is written to `data/` beforehand.
 
 ## Upgrading from v1
 

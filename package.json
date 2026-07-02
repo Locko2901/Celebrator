@@ -24,7 +24,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/luxon": "^3.4.2",
-    "@types/node": "^20.19.35",
+    "@types/node": "^26.1.0",
     "eslint": "^10.0.2",
     "tsx": "^4.15.0",
     "typescript": "^5.5.0",

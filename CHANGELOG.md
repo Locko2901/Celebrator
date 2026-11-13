@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.1](https://github.com/Locko2901/Celebrator/compare/v4.0.0...v4.0.1) (2026-11-13)
+
+
+### Documentation
+
+* update README with Docker installation options and updating instructions ([c692b53](https://github.com/Locko2901/Celebrator/commit/c692b53a52b9e24a1b0ec5b6a9f5b950fdbc8b06))
+
 ## [4.0.0](https://github.com/Locko2901/Celebrator/compare/v3.0.0...v4.0.0) (2026-07-02)
 
 
